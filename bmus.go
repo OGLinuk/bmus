@@ -1,11 +1,9 @@
 package main
 
 import (
-	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
-	"os"
 	"os/exec"
 	"os/user"
 )
@@ -50,13 +48,17 @@ func init() {
 			*target = fmt.Sprintf("%s", cuser.HomeDir)
 		}
 		if *dest == "" {
-			*dest = fmt.Sprintf("%s/Documents", cuser.HomeDir)
+			*dest = fmt.Sprintf("%s/Documents/backups", cuser.HomeDir)
 		}
 
 		cfg = BMUSConfig{
 			Flags:       *flags,
 			Target:      *target,
-			Destination: *dest,
+			Destination: fmt.Sprintf("%s/backups", *dest),
+		}
+
+		if err := checkBackupDest(); err != nil {
+			log.Printf("Failed to checkDefaultBackup: %v", err)
 		}
 	}
 }
@@ -69,45 +71,10 @@ func main() {
 
 // Back Me Up Scotty
 func BMUS() error {
-
 	err = exec.Command("rsync", cfg.Flags, cfg.Target, cfg.Destination).Run()
-	if err != nil {
-		return nil
-	}
-
-	return nil
-}
-
-func saveConfig(bcfg *BMUSConfig) error {
-	f, err := os.Create(configName)
 	if err != nil {
 		return err
 	}
-	defer f.Close()
-
-	encoder := json.NewEncoder(f)
-	encoder.SetIndent("", "\t")
-	encoder.Encode(bcfg)
 
 	return nil
-}
-
-func loadConfig() (BMUSConfig, error) {
-	var bcfg BMUSConfig
-
-	f, err := os.Open(configName)
-	if err != nil {
-		saveConfig(&BMUSConfig{
-			Flags:       "-azvhP",
-			Target:      cuser.HomeDir,
-			Destination: fmt.Sprintf("%s/Documents", cuser.HomeDir),
-		})
-		return cfg, err
-	}
-	defer f.Close()
-
-	decoder := json.NewDecoder(f)
-	err = decoder.Decode(&bcfg)
-
-	return bcfg, err
 }
