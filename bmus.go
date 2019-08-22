@@ -83,6 +83,10 @@ func BMUS() error {
 		return err
 	}
 
+	if err = archive(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
