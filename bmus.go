@@ -57,14 +57,14 @@ func init() {
 			Destination: fmt.Sprintf("%s/backups", *dest),
 		}
 
-		if err := checkBackupDest(); err != nil {
+		if err = checkBackupDest(); err != nil {
 			log.Printf("Failed to checkDefaultBackup: %v", err)
 		}
 	}
 }
 
 func main() {
-	if err := BMUS(); err != nil {
+	if err = BMUS(); err != nil {
 		log.Printf("Failed to BMUS: %v", err)
 	}
 }

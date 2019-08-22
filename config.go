@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"os"
 )
 
@@ -42,8 +41,6 @@ func saveConfig(bcfg *BMUSConfig) error {
 }
 
 func checkBackupDest() error {
-	log.Printf("Checking if %s exists ...", cfg.Destination)
-
 	_, err := os.Stat(cfg.Destination)
 	if err != nil {
 		os.MkdirAll(cfg.Destination, 0777)
