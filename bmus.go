@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"os/user"
+	"path/filepath"
 )
 
 type BMUSConfig struct {
@@ -33,19 +34,31 @@ func init() {
 	flag.Parse()
 
 	if *flags == "" {
-		*flags = "-azvhP"
+		*flags = "-az"
 	}
 	if *target == "" {
 		*target = fmt.Sprintf("%s", cuser.HomeDir)
 	}
 	if *dest == "" {
 		*dest = fmt.Sprintf("%s/Documents/backups", cuser.HomeDir)
+	} else {
+		*dest = fmt.Sprintf("%s/backups", *dest)
+	}
+
+	targetAbsPath, err := filepath.Abs(*target)
+	if err != nil {
+		log.Printf("Failed to get target absolute path ...")
+	}
+
+	destAbsPath, err := filepath.Abs(*dest)
+	if err != nil {
+		log.Printf("Failed to get dest absolute path ...")
 	}
 
 	bcfg = BMUSConfig{
 		Flags:       *flags,
-		Target:      *target,
-		Destination: fmt.Sprintf("%s/backups", *dest),
+		Target:      targetAbsPath,
+		Destination: destAbsPath,
 	}
 
 	if err = checkBackupDest(); err != nil {
@@ -55,8 +68,6 @@ func init() {
 }
 
 func checkBackupDest() error {
-	log.Printf("Checking if %s exists ...", bcfg.Destination)
-
 	_, err := os.Stat(bcfg.Destination)
 	if err != nil {
 		os.MkdirAll(bcfg.Destination, 0777)
