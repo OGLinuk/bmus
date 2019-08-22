@@ -6,16 +6,11 @@ import (
 	"io"
 	"io/ioutil"
 	"os"
-	"path/filepath"
-	"time"
+	"strings"
 )
 
 func archive() error {
-	afname := fmt.Sprintf("%s/backup_%d", bcfg.Destination, time.Now().Unix())
-
-	_, tname := filepath.Split(bcfg.Target)
-
-	af, err := createArchive(afname)
+	af, err := createArchive(bcfg.Destination)
 	if err != nil {
 		return err
 	}
@@ -25,7 +20,7 @@ func archive() error {
 		return err
 	}
 
-	err = os.RemoveAll(fmt.Sprintf("%s/%s", bcfg.Destination, tname))
+	err = os.RemoveAll(bcfg.Destination)
 	if err != nil {
 		return err
 	}
@@ -57,7 +52,8 @@ func recurArchive(aw *zip.Writer, base, zipBase string) error {
 				return err
 			}
 
-			dst, err := aw.Create(fmt.Sprintf("%s/%s", zipBase, f.Name()))
+			dstPath := fmt.Sprintf("%s/%s", zipBase, f.Name())
+			dst, err := aw.Create(strings.TrimPrefix(dstPath, "/"))
 			if err != nil {
 				return err
 			}
@@ -68,8 +64,9 @@ func recurArchive(aw *zip.Writer, base, zipBase string) error {
 			}
 		} else if f.IsDir() {
 			newBase := fmt.Sprintf("%s/%s", base, f.Name())
+			newZipBase := fmt.Sprintf("%s/%s", zipBase, f.Name())
 
-			err = recurArchive(aw, newBase, fmt.Sprintf("%s/%s", zipBase, f.Name()))
+			err = recurArchive(aw, newBase, newZipBase)
 			if err != nil {
 				return err
 			}
