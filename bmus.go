@@ -4,12 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 	"os/exec"
 	"os/user"
-)
-
-var (
-	configName = "config.json"
 )
 
 type BMUSConfig struct {
@@ -19,7 +16,7 @@ type BMUSConfig struct {
 }
 
 var (
-	cfg   BMUSConfig
+	bcfg  BMUSConfig
 	cuser *user.User
 	err   error
 )
@@ -35,46 +32,51 @@ func init() {
 	dest := flag.String("d", "", "Destination for backup(s)")
 	flag.Parse()
 
-	if *flags == "" && *target == "" && *dest == "" {
-		cfg, err = loadConfig()
-		if err != nil {
-			log.Printf("Failed to LoadConfig: %v", err)
-		}
-	} else {
-		if *flags == "" {
-			*flags = "-azvhP"
-		}
-		if *target == "" {
-			*target = fmt.Sprintf("%s", cuser.HomeDir)
-		}
-		if *dest == "" {
-			*dest = fmt.Sprintf("%s/Documents/backups", cuser.HomeDir)
-		}
-
-		cfg = BMUSConfig{
-			Flags:       *flags,
-			Target:      *target,
-			Destination: fmt.Sprintf("%s/backups", *dest),
-		}
-
-		if err := checkBackupDest(); err != nil {
-			log.Printf("Failed to checkDefaultBackup: %v", err)
-		}
+	if *flags == "" {
+		*flags = "-azvhP"
 	}
+	if *target == "" {
+		*target = fmt.Sprintf("%s", cuser.HomeDir)
+	}
+	if *dest == "" {
+		*dest = fmt.Sprintf("%s/Documents/backups", cuser.HomeDir)
+	}
+
+	bcfg = BMUSConfig{
+		Flags:       *flags,
+		Target:      *target,
+		Destination: fmt.Sprintf("%s/backups", *dest),
+	}
+
+	if err = checkBackupDest(); err != nil {
+		log.Printf("Failed to checkDefaultBackup: %v", err)
+	}
+
 }
 
-func main() {
-	if err := BMUS(); err != nil {
-		log.Printf("Failed to BMUS: %v", err)
+func checkBackupDest() error {
+	log.Printf("Checking if %s exists ...", bcfg.Destination)
+
+	_, err := os.Stat(bcfg.Destination)
+	if err != nil {
+		os.MkdirAll(bcfg.Destination, 0777)
 	}
+
+	return nil
 }
 
 // Back Me Up Scotty
 func BMUS() error {
-	err = exec.Command("rsync", cfg.Flags, cfg.Target, cfg.Destination).Run()
+	err = exec.Command("rsync", bcfg.Flags, bcfg.Target, bcfg.Destination).Run()
 	if err != nil {
 		return err
 	}
 
 	return nil
+}
+
+func main() {
+	if err = BMUS(); err != nil {
+		log.Printf("Failed to BMUS: %v", err)
+	}
 }
