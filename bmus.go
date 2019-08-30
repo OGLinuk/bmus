@@ -4,8 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"os"
-	"os/exec"
 	"os/user"
 	"path/filepath"
 )
@@ -67,19 +65,9 @@ func init() {
 
 }
 
-func checkBackupDest() error {
-	_, err := os.Stat(bcfg.Destination)
-	if err != nil {
-		os.MkdirAll(bcfg.Destination, 0777)
-	}
-
-	return nil
-}
-
 // Back Me Up Scotty
 func BMUS() error {
-	err = exec.Command("rsync", bcfg.Flags, bcfg.Target, bcfg.Destination).Run()
-	if err != nil {
+	if err = scotty(bcfg.Target); err != nil {
 		return err
 	}
 

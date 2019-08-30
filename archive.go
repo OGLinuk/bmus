@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Compress the backups in a zip file
 func archive() error {
 	af, err := createArchive(bcfg.Destination)
 	if err != nil {
@@ -28,6 +29,7 @@ func archive() error {
 	return nil
 }
 
+// Create a zip file in the backup destination
 func createArchive(archiveName string) (*zip.Writer, error) {
 	af, err := os.Create(fmt.Sprintf("%s.zip", archiveName))
 	if err != nil {
@@ -37,6 +39,7 @@ func createArchive(archiveName string) (*zip.Writer, error) {
 	return zip.NewWriter(af), nil
 }
 
+// Recursively add directories/files to the zip file
 func recurArchive(aw *zip.Writer, base, zipBase string) error {
 	files, err := ioutil.ReadDir(base)
 	if err != nil {
