@@ -9,7 +9,7 @@ import (
 func checkBackupDest() error {
 	_, err := os.Stat(bcfg.Destination)
 	if err != nil {
-		os.MkdirAll(bcfg.Destination, 0777)
+		os.MkdirAll(bcfg.Destination, 0770)
 	}
 
 	return nil

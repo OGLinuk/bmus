@@ -11,7 +11,7 @@ import (
 
 // Compress the backups in a zip file
 func archive() error {
-	af, err := createArchive(bcfg.Destination)
+	af, err := createArchive()
 	if err != nil {
 		return err
 	}
@@ -30,8 +30,8 @@ func archive() error {
 }
 
 // Create a zip file in the backup destination
-func createArchive(archiveName string) (*zip.Writer, error) {
-	af, err := os.Create(fmt.Sprintf("%s.zip", archiveName))
+func createArchive() (*zip.Writer, error) {
+	af, err := os.Create(fmt.Sprintf("%s.zip", bcfg.Destination))
 	if err != nil {
 		return nil, err
 	}
