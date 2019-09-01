@@ -1,8 +1,6 @@
 package main
 
 import (
-	"flag"
-	"fmt"
 	"log"
 	"os/user"
 	"path/filepath"
@@ -26,23 +24,7 @@ func init() {
 		log.Printf("Failed to get user.Current: %v", err)
 	}
 
-	flags := flag.String("f", "", "Flags to pass to rsync")
-	target := flag.String("t", "", "Target dir/file to backup")
-	dest := flag.String("d", "", "Destination for backup(s)")
-	flag.Parse()
-
-	if *flags == "" {
-		*flags = "-az"
-	}
-	if *target == "" {
-		*target = fmt.Sprintf("%s", cuser.HomeDir)
-	}
-	if *dest == "" {
-		*dest = fmt.Sprintf("%s/Documents/backups", cuser.HomeDir)
-	} else {
-		*dest = fmt.Sprintf("%s/backups", *dest)
-	}
-
+	parseFlags()
 	targetAbsPath, err := filepath.Abs(*target)
 	if err != nil {
 		log.Printf("Failed to get target absolute path ...")
@@ -62,7 +44,6 @@ func init() {
 	if err = checkBackupDest(); err != nil {
 		log.Printf("Failed to checkDefaultBackup: %v", err)
 	}
-
 }
 
 // Back Me Up Scotty

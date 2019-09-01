@@ -2,9 +2,10 @@ package main
 
 import (
 	"archive/zip"
+	"bufio"
 	"fmt"
-	"io"
 	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
@@ -17,7 +18,7 @@ func archive() error {
 	}
 	defer af.Close()
 
-	if err := recurArchive(af, bcfg.Destination, ""); err != nil {
+	if err = recurArchive(af, bcfg.Destination, ""); err != nil {
 		return err
 	}
 
@@ -52,19 +53,28 @@ func recurArchive(aw *zip.Writer, base, zipBase string) error {
 		if !f.IsDir() {
 			src, err := os.Open(cPath)
 			if err != nil {
+				log.Println("Failed to open ", cPath)
 				return err
 			}
 
-			dstPath := fmt.Sprintf("%s/%s", zipBase, f.Name())
-			dst, err := aw.Create(strings.TrimPrefix(dstPath, "/"))
+			dstPath := strings.TrimPrefix(fmt.Sprintf("%s/%s", zipBase, f.Name()), "/")
+
+			dst, err := aw.Create(dstPath)
 			if err != nil {
 				return err
 			}
 
-			_, err = io.Copy(dst, src)
-			if err != nil {
-				return err
+			bs := bufio.NewScanner(src)
+
+			if *encryption {
+				// TODO: Change to env variables or config file
+				sbh := genSBH("test", 42, 1729)
+				err = encryptFile(bs.Bytes(), dst, sbh)
+				if err != nil {
+					return err
+				}
 			}
+
 		} else if f.IsDir() {
 			newBase := fmt.Sprintf("%s/%s", base, f.Name())
 			newZipBase := fmt.Sprintf("%s/%s", zipBase, f.Name())
